@@ -66,8 +66,8 @@ class Mc_9pay {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		if ( defined( 'MC_9PAY_VERSION' ) ) {
-			$this->version = MC_9PAY_VERSION;
+		if ( defined( 'NINEPAY_MC_9PAY_VERSION' ) ) {
+			$this->version = NINEPAY_MC_9PAY_VERSION;
 		} else {
 			$this->version = '1.0.0';
 		}

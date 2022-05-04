@@ -42,7 +42,7 @@ class MessageBuilder
         try {
             $this->validate();
         } catch (SignatureException $e) {
-            echo $e;
+            echo esc_html($e);
         }
 
         $canonicalHeaders = $this->canonicalHeaders();

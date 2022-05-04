@@ -12,7 +12,7 @@ class NinePayGateway extends NinePay {
 //		parent::__construct();
 
         $this->id                 = 'ninepay-gateway';
-        $this->icon = sprintf("%s/public/images/logo.png",MC_9PAY_PLUGIN_URL);
+        $this->icon = sprintf("%s/public/images/logo.png",NINEPAY_MC_9PAY_PLUGIN_URL);
         $this->has_fields         = false;
         $this->order_button_text  = $this->get_option( 'order_button_text', 'Thanh toán' );
         $this->method_title       = __( 'Cổng thanh toán 9Pay', 'woocommerce' );
@@ -256,10 +256,8 @@ class NinePayGateway extends NinePay {
 //        if($order->get_status() == 'completed' || $order->get_payment_method() != $this->id) return;
         if($order->get_payment_method() != $this->id) return;
 
-        $data = $_GET;
-
         /*Check isset params*/
-        if(empty($data['result']) || empty($data['checksum'])) {
+        if(empty($_GET['result']) || empty($_GET['checksum'])) {
             $mess = $this->genMess(null, $configFile, $lang);
             $this->paymentFail($lang, $mess);
             return;
@@ -267,15 +265,15 @@ class NinePayGateway extends NinePay {
 
         $secretKeyCheckSum = $this->get_option('checksum_secret_key');
 
-        $hashChecksum = strtoupper(hash('sha256', $data['result'] . $secretKeyCheckSum));
+        $hashChecksum = strtoupper(hash('sha256', $_GET['result'] . $secretKeyCheckSum));
 
-        if ($hashChecksum !== $data['checksum']) {
+        if ($hashChecksum !== $_GET['checksum']) {
             return;
         }
 
 
         // Payment info
-        $arrayParams = json_decode(urlsafeB64Decode($data['result']), true);
+        $arrayParams = json_decode(urlsafeB64Decode(esc_html($_GET['result'])), true);
 
         /*Check valid invoice_no*/
         if($order->get_meta('_invoice_no') != $arrayParams['invoice_no']) {
@@ -350,7 +348,7 @@ class NinePayGateway extends NinePay {
             <div id="frame-thanhtoan">
                 <hr>
                 <h3>Thanh toán thất bại</h3>
-                <p><?php echo($mess) ?></p>
+                <p><?php echo(esc_html($mess)) ?></p>
                 <hr>
             </div>
             <?php
@@ -359,7 +357,7 @@ class NinePayGateway extends NinePay {
             <div id="frame-thanhtoan">
                 <hr>
                 <h3>Payment failed</h3>
-                <p><?php echo($mess) ?></p>
+                <p><?php echo(esc_html($mess)) ?></p>
                 <hr>
             </div>
             <?php
