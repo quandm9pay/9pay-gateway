@@ -37,7 +37,7 @@ class NinePayPayment
             'back_url' => $returnUrl,
             'return_url' => $returnUrl,
             'lang' => NinePayConstance::LANG_VI,
-            'currency' => NinePayConstance::CURRENCY_VND,
+            'currency' => $order['currency']
         ];
 
         /*Choice payment method*/
@@ -49,11 +49,6 @@ class NinePayPayment
         if($lang === NinePayConstance::LANG_EN) {
             $data['lang'] = NinePayConstance::LANG_EN;
             $data['description'] = "Payment for order number: orderID" . $order['id'];
-        }
-
-        /*Currency*/
-        if($order['currency'] === NinePayConstance::CURRENCY_USD) {
-            $data['currency'] = NinePayConstance::CURRENCY_USD;
         }
 
         $message = MessageBuilder::instance()
