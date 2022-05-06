@@ -65,7 +65,11 @@ class NinePay extends WC_Payment_Gateway {
 
     function process_payment( $order_id ) {
         $order = new WC_Order( $order_id );
-        $paymentMethod = $_POST['ninepay_payment_method'];
+        $ninePayPaymentMethod = $_POST['ninepay_payment_method'];
+        if (is_null($ninePayPaymentMethod)) {
+            return;
+        }
+        $paymentMethod = $ninePayPaymentMethod;
         $configFile = include('core/config.php');
         $configLang = include('core/lang.php');
 
@@ -84,7 +88,7 @@ class NinePay extends WC_Payment_Gateway {
         }
 
         /*ReCalculator total order*/
-        $fee = addFee($paymentMethod, $order->get_total(), $paymentConfig);
+        $fee = ninepay_add_fee($paymentMethod, $order->get_total(), $paymentConfig);
         $this->addFeeOrder($order, $fee);
 
         if($this->checkMinAmount($order->get_data(), $configFile, $configLang, $paymentConfig)

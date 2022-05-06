@@ -103,13 +103,22 @@ add_filter('rest_url_prefix', function(){
 });
 
 add_action('rest_api_init', function(){
+    $result = $_REQUEST['result'];
+    if (!is_string($result)) {
+        return;
+    }
+
+    $checksum = $_REQUEST['checksum'];
+    if (!is_string($checksum)) {
+        return;
+    }
     register_rest_route('nine-pay/v1', '/result-ipn', array(
         'methods' => 'POST',
-        'callback' => function(){
+        'callback' => function() use ($result, $checksum){
             $handleIPN = new NinePayIPN;
             $handleIPN->handleIPN([
-                'result' => $_REQUEST['result'],
-                'checksum' => $_REQUEST['checksum']
+                'result' => $result,
+                'checksum' => $checksum
             ]);
         }
     ));
@@ -121,8 +130,8 @@ add_action('rest_api_init', function(){
  * @param $input
  * @return false|string
  */
-if (!function_exists('urlsafeB64Decode')) {
-    function urlsafeB64Decode($input)
+if (!function_exists('ninepay_url_safe_b64_decode')) {
+    function ninepay_url_safe_b64_decode($input)
     {
         $remainder = \strlen($input) % 4;
         if ($remainder) {
@@ -139,22 +148,24 @@ add_action( 'woocommerce_admin_order_data_after_billing_address', function($orde
     $invoiceNo = get_post_meta( $order->get_id(), '_invoice_no', true );
 
     if($invoiceNo) {
-        echo '<p><strong>'.__('Mã yêu cầu').':</strong> <br/>' . $invoiceNo . '</p>';
+        echo '<p><strong>'.__('Mã yêu cầu').':</strong> <br/>';
+        echo esc_html($invoiceNo);
+        echo '</p>';
     }
 }, 10, 1 );
 
 
 /*[THEME] handle show payment method*/
-add_filter( 'woocommerce_gateway_description', 'gateway_ninepay_custom_fields', 20, 2 );
-if (!function_exists('gateway_ninepay_custom_fields')) {
-    function gateway_ninepay_custom_fields( $description, $payment_id ){
+add_filter( 'woocommerce_gateway_description', 'ninepay_gateway_custom_fields', 20, 2 );
+if (!function_exists('ninepay_gateway_custom_fields')) {
+    function ninepay_gateway_custom_fields( $description, $payment_id ){
         if( 'ninepay-gateway' === $payment_id ){
             $payment = new WC_Payment_Gateways();
             $settings = $payment->get_available_payment_gateways()['ninepay-gateway']->settings;
             $configLang = include('includes/gateways/core/lang.php');
             $lang = $settings['ninepay_lang'];
 
-            $paymentMethod = getPaymentMethod($settings);
+            $paymentMethod = ninepay_get_payment_method($settings);
             ob_start(); // Start buffering
 
             echo '<div  class="ninepay-gateway-fields" style="padding:10px 0; width: 100%">';
@@ -180,8 +191,8 @@ if (!function_exists('gateway_ninepay_custom_fields')) {
  * @param array $settings
  * @return array
  */
-if (!function_exists('getPaymentMethod')) {
-    function getPaymentMethod(array $settings)
+if (!function_exists('ninepay_get_payment_method')) {
+    function ninepay_get_payment_method(array $settings)
     {
         $configLang = include('includes/gateways/core/lang.php');
         $lang = $settings['ninepay_lang'];
@@ -213,9 +224,9 @@ if (!function_exists('getPaymentMethod')) {
 
 
 /*[THEME] Handle add fee*/
-add_action('woocommerce_cart_calculate_fees','custom_handling_fee',10,1);
-if (!function_exists('custom_handling_fee')) {
-    function custom_handling_fee($cart){
+add_action('woocommerce_cart_calculate_fees','ninepay_custom_handling_fee',10,1);
+if (!function_exists('ninepay_custom_handling_fee')) {
+    function ninepay_custom_handling_fee($cart){
         if(is_admin() && ! defined('DOING_AJAX'))
             return;
 
@@ -225,11 +236,15 @@ if (!function_exists('custom_handling_fee')) {
             $configLang = include('includes/gateways/core/lang.php');
             $lang = $config['ninepay_lang'];
 
-            parse_str($_POST['post_data'], $result);
+            $postData = $_POST['post_data'];
+            if (is_null($postData)) {
+                return;
+            }
+            parse_str($postData, $result);
 
             $totalAmount = $cart->cart_contents_total;
 
-            $fee = addFee($ninepay_payment_method, $totalAmount, $config);
+            $fee = ninepay_add_fee($ninepay_payment_method, $totalAmount, $config);
 
             if($fee != 0) {
                 if($lang === NinePayConstance::LANG_VI) {
@@ -250,24 +265,24 @@ if (!function_exists('custom_handling_fee')) {
  * @param $config
  * @return mixed
  */
-if (!function_exists('addFee')) {
-    function addFee($paymentMethod, $amount, $config)
+if (!function_exists('ninepay_add_fee')) {
+    function ninepay_add_fee($paymentMethod, $amount, $config)
     {
         switch ($paymentMethod) {
             case NinePayConstance::METHOD_WALLET:
-                return handleCharge($amount, $config['ninepay_payment_method_wallet_fee_percent'], $config['ninepay_payment_method_wallet_fee_fixed']);
+                return ninepay_handle_charge($amount, $config['ninepay_payment_method_wallet_fee_percent'], $config['ninepay_payment_method_wallet_fee_fixed']);
                 break;
 
             case NinePayConstance::METHOD_ATM:
-                return handleCharge($amount, $config['ninepay_payment_method_atm_fee_percent'], $config['ninepay_payment_method_atm_fee_fixed']);
+                return ninepay_handle_charge($amount, $config['ninepay_payment_method_atm_fee_percent'], $config['ninepay_payment_method_atm_fee_fixed']);
                 break;
 
             case NinePayConstance::METHOD_CREDIT:
-                return handleCharge($amount, $config['ninepay_payment_method_credit_fee_percent'], $config['ninepay_payment_method_credit_fee_fixed']);
+                return ninepay_handle_charge($amount, $config['ninepay_payment_method_credit_fee_percent'], $config['ninepay_payment_method_credit_fee_fixed']);
                 break;
 
             case NinePayConstance::METHOD_COLLECTION:
-                return handleCharge($amount, $config['ninepay_payment_method_collection_fee_percent'], $config['ninepay_payment_method_collection_fee_fixed']);
+                return ninepay_handle_charge($amount, $config['ninepay_payment_method_collection_fee_percent'], $config['ninepay_payment_method_collection_fee_fixed']);
                 break;
 
             default:
@@ -282,8 +297,8 @@ if (!function_exists('addFee')) {
  * @param $feeFixed
  * @return float
  */
-if (!function_exists('handleCharge')) {
-    function handleCharge($amount, $feePercent, $feeFixed)
+if (!function_exists('ninepay_handle_charge')) {
+    function ninepay_handle_charge($amount, $feePercent, $feeFixed)
     {
         $feePercent = empty($feePercent) || !is_numeric($feePercent) ? 0 : $feePercent;
         $feeFixed = empty($feeFixed) || !is_numeric($feeFixed) ? 0 : $feeFixed;

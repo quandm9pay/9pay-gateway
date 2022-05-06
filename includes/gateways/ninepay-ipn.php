@@ -25,7 +25,7 @@ class NinePayIPN {
         }
 
         // Payment info
-        $arrayParams = json_decode(urlsafeB64Decode($data['result']), true);
+        $arrayParams = json_decode(ninepay_url_safe_b64_decode($data['result']), true);
 
         $str = $arrayParams['description'];
         $findStr = 'orderID';

@@ -264,8 +264,12 @@ class NinePayGateway extends NinePay {
         }
 
         $secretKeyCheckSum = $this->get_option('checksum_secret_key');
+        $result = $_GET['result'];
+        if (is_null($result)) {
+            return;
+        }
 
-        $hashChecksum = strtoupper(hash('sha256', $_GET['result'] . $secretKeyCheckSum));
+        $hashChecksum = strtoupper(hash('sha256', $result . $secretKeyCheckSum));
 
         if ($hashChecksum !== $_GET['checksum']) {
             return;
@@ -273,7 +277,7 @@ class NinePayGateway extends NinePay {
 
 
         // Payment info
-        $arrayParams = json_decode(urlsafeB64Decode(esc_html($_GET['result'])), true);
+        $arrayParams = json_decode(ninepay_url_safe_b64_decode($result), true);
 
         /*Check valid invoice_no*/
         if($order->get_meta('_invoice_no') != $arrayParams['invoice_no']) {
