@@ -65,10 +65,10 @@ class NinePay extends WC_Payment_Gateway {
 
     function process_payment( $order_id ) {
         $order = new WC_Order( $order_id );
-        $ninePayPaymentMethod = $_POST['ninepay_payment_method'];
-        if (is_null($ninePayPaymentMethod)) {
+        if (is_null($_POST['ninepay_payment_method'])) {
             return;
         }
+        $ninePayPaymentMethod = $_POST['ninepay_payment_method'];
         $paymentMethod = $ninePayPaymentMethod;
         $configFile = include('core/config.php');
         $configLang = include('core/lang.php');

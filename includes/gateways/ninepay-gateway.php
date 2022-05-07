@@ -264,10 +264,10 @@ class NinePayGateway extends NinePay {
         }
 
         $secretKeyCheckSum = $this->get_option('checksum_secret_key');
-        $result = $_GET['result'];
-        if (is_null($result)) {
+        if (is_null($_GET['result'])) {
             return;
         }
+        $result = $_GET['result'];
 
         $hashChecksum = strtoupper(hash('sha256', $result . $secretKeyCheckSum));
 

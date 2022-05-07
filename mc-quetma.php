@@ -103,15 +103,17 @@ add_filter('rest_url_prefix', function(){
 });
 
 add_action('rest_api_init', function(){
-    $result = $_REQUEST['result'];
-    if (!is_string($result)) {
-        return;
-    }
 
-    $checksum = $_REQUEST['checksum'];
-    if (!is_string($checksum)) {
+    if (!is_string($_REQUEST['result'])) {
         return;
     }
+    $result = $_REQUEST['result'];
+
+    if (!is_string($_REQUEST['checksum'])) {
+        return;
+    }
+    $checksum = $_REQUEST['checksum'];
+
     register_rest_route('nine-pay/v1', '/result-ipn', array(
         'methods' => 'POST',
         'callback' => function() use ($result, $checksum){
@@ -236,10 +238,11 @@ if (!function_exists('ninepay_custom_handling_fee')) {
             $configLang = include('includes/gateways/core/lang.php');
             $lang = $config['ninepay_lang'];
 
-            $postData = $_POST['post_data'];
-            if (is_null($postData)) {
+            if (is_null($_POST['post_data'])) {
                 return;
             }
+            $postData = $_POST['post_data'];
+
             parse_str($postData, $result);
 
             $totalAmount = $cart->cart_contents_total;
