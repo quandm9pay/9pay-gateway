@@ -10,6 +10,7 @@ return [
         'x_forward_link_test' => 'https://sand-payment.9pay.vn/payments/create', /*Alpha*/
     ],
     'min_amount' => 2000,
+    'min_amount_wallet_vnd' => 4000,
     'max_amount' => 200000000,
     'status' => [
         'PAYMENT_SUCCESS' => [1, 2, 4, 5],

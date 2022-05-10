@@ -107,12 +107,12 @@ add_action('rest_api_init', function(){
     if (!is_string($_REQUEST['result'])) {
         return;
     }
-    $result = $_REQUEST['result'];
+    $result = sanitize_text_field($_REQUEST['result']);
 
     if (!is_string($_REQUEST['checksum'])) {
         return;
     }
-    $checksum = $_REQUEST['checksum'];
+    $checksum = sanitize_text_field($_REQUEST['checksum']);
 
     register_rest_route('nine-pay/v1', '/result-ipn', array(
         'methods' => 'POST',
@@ -224,6 +224,42 @@ if (!function_exists('ninepay_get_payment_method')) {
     }
 }
 
+if (!function_exists('ninepay_add_checkout_script')) {
+    function ninepay_add_checkout_script() {
+        global $woocommerce;
+        $configFile = include('includes/gateways/core/config.php');
+        $totalCart = $woocommerce->cart->total;
+        $currency = get_option('woocommerce_currency');
+        $minAmount = $configFile['min_amount_wallet_vnd'];
+        ?>
+        <script type="text/javascript">
+            let totalCart = parseFloat("<?php echo esc_html($totalCart); ?>");
+            let currency = "<?php echo esc_html($currency); ?>";
+            let minAmount = parseFloat("<?php echo esc_html($minAmount); ?>");
+            let paymentMethod = jQuery('#ninepay_payment_method').val();
+            jQuery(document).on("updated_checkout", function(){
+                jQuery('#place_order').click(function (e) {
+                    if (paymentMethod === "WALLET") {
+                        if (currency === "VND" && totalCart < minAmount) {
+                            let error = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                                    <ul class="woocommerce-error" role="alert">
+			                            <li>Giá trị giao dịch không được nhỏ hơn ${minAmount} VNĐ</li>
+                                    </ul>
+                                </div>`;
+                            jQuery('form.woocommerce-checkout').prepend(error);
+                            jQuery(jQuery('form.woocommerce-checkout .woocommerce-NoticeGroup')[0]).focus();
+                            jQuery('html, body').animate({ scrollTop: jQuery(jQuery('form.woocommerce-checkout .woocommerce-NoticeGroup')[0]).offset().top - 200 }, 'slow');
+                            e.preventDefault();
+                        }
+                    }
+                });
+            });
+        </script type="text/javascript">
+        <?php
+    }
+}
+add_action('woocommerce_after_checkout_form', 'ninepay_add_checkout_script');
+
 
 /*[THEME] Handle add fee*/
 add_action('woocommerce_cart_calculate_fees','ninepay_custom_handling_fee',10,1);
@@ -241,7 +277,7 @@ if (!function_exists('ninepay_custom_handling_fee')) {
             if (is_null($_POST['post_data'])) {
                 return;
             }
-            $postData = $_POST['post_data'];
+            $postData = sanitize_text_field($_POST['post_data']);
 
             parse_str($postData, $result);
 
