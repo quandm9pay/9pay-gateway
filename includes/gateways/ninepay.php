@@ -68,7 +68,7 @@ class NinePay extends WC_Payment_Gateway {
         if (is_null($_POST['ninepay_payment_method'])) {
             return;
         }
-        $ninePayPaymentMethod = $_POST['ninepay_payment_method'];
+        $ninePayPaymentMethod = sanitize_text_field($_POST['ninepay_payment_method']);
         $paymentMethod = $ninePayPaymentMethod;
         $configFile = include('core/config.php');
         $configLang = include('core/lang.php');

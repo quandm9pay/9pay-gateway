@@ -11,6 +11,13 @@ return [
     ],
     'min_amount' => 2000,
     'min_amount_wallet_vnd' => 4000,
+    'max_amount_wallet_vnd' => 100000000,
+    'min_amount_atm_card_vnd' => 10000,
+    'max_amount_atm_card_vnd' => 200000000,
+    'min_amount_credit_card_vnd' => 10000,
+    'max_amount_credit_card_vnd' => 200000000,
+    'min_amount_collection_vnd' => 10000,
+    'max_amount_collection_vnd' => 200000000,
     'max_amount' => 200000000,
     'status' => [
         'PAYMENT_SUCCESS' => [1, 2, 4, 5],

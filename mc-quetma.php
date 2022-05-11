@@ -227,33 +227,182 @@ if (!function_exists('ninepay_get_payment_method')) {
 if (!function_exists('ninepay_add_checkout_script')) {
     function ninepay_add_checkout_script() {
         global $woocommerce;
+        $language = get_locale();
         $configFile = include('includes/gateways/core/config.php');
         $totalCart = $woocommerce->cart->total;
         $currency = get_option('woocommerce_currency');
-        $minAmount = $configFile['min_amount_wallet_vnd'];
+        $minAmountWalletVnd = $configFile['min_amount_wallet_vnd'];
+        $maxAmountWalletVnd = $configFile['max_amount_wallet_vnd'];
+
+        $minAmountAtmCardVnd = $configFile['min_amount_atm_card_vnd'];
+        $maxAmountAtmCardVnd = $configFile['max_amount_atm_card_vnd'];
+
+        $minAmountCreditCardVnd = $configFile['min_amount_credit_card_vnd'];
+        $maxAmountCreditCardVnd = $configFile['max_amount_credit_card_vnd'];
+
+        $minAmountCollectionVnd = $configFile['min_amount_collection_vnd'];
+        $maxAmountCollectionVnd = $configFile['max_amount_collection_vnd'];
         ?>
         <script type="text/javascript">
             let totalCart = parseFloat("<?php echo esc_html($totalCart); ?>");
             let currency = "<?php echo esc_html($currency); ?>";
-            let minAmount = parseFloat("<?php echo esc_html($minAmount); ?>");
-            let paymentMethod = jQuery('#ninepay_payment_method').val();
+            let language = "<?php echo esc_html($language); ?>";
+
+            let minAmountWalletVnd = parseFloat("<?php echo esc_html($minAmountWalletVnd); ?>");
+            let maxAmountWalletVnd = parseFloat("<?php echo esc_html($maxAmountWalletVnd); ?>");
+
+            let minAmountAtmCardVnd = parseFloat("<?php echo esc_html($minAmountAtmCardVnd); ?>");
+            let maxAmountAtmCardVnd = parseFloat("<?php echo esc_html($maxAmountAtmCardVnd); ?>");
+
+            let minAmountCreditCardVnd = parseFloat("<?php echo esc_html($minAmountCreditCardVnd); ?>");
+            let maxAmountCreditCardVnd = parseFloat("<?php echo esc_html($maxAmountCreditCardVnd); ?>");
+
+            let minAmountCollectionVnd = parseFloat("<?php echo esc_html($minAmountCollectionVnd); ?>");
+            let maxAmountCollectionVnd = parseFloat("<?php echo esc_html($maxAmountCollectionVnd); ?>");
+
             jQuery(document).on("updated_checkout", function(){
                 jQuery('#place_order').click(function (e) {
-                    if (paymentMethod === "WALLET") {
-                        if (currency === "VND" && totalCart < minAmount) {
-                            let error = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                    jQuery(jQuery('.woocommerce-NoticeGroup')[0]).empty();
+                    let paymentMethod = jQuery('#ninepay_payment_method').val();
+                    if (paymentMethod === "WALLET" && currency === "VND") {
+                        if (totalCart < minAmountWalletVnd) {
+                            let errorMessage = '';
+                            if (language === 'vi') {
+                                errorMessage = `Số tiền tối thiểu chấp nhận thanh toán là ${minAmountWalletVnd.toLocaleString()} đ. Vui lòng chọn phương thức thanh toán khác.`;
+                            } else {
+                                errorMessage = `The minimum amount accepted for payment is ${minAmountWalletVnd.toLocaleString()} VND. Please choose another payment method.`;
+                            }
+                            let errorElement = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
                                     <ul class="woocommerce-error" role="alert">
-			                            <li>Giá trị giao dịch không được nhỏ hơn ${minAmount} VNĐ</li>
+			                            <li>${errorMessage}</li>
                                     </ul>
                                 </div>`;
-                            jQuery('form.woocommerce-checkout').prepend(error);
-                            jQuery(jQuery('form.woocommerce-checkout .woocommerce-NoticeGroup')[0]).focus();
-                            jQuery('html, body').animate({ scrollTop: jQuery(jQuery('form.woocommerce-checkout .woocommerce-NoticeGroup')[0]).offset().top - 200 }, 'slow');
+                            ninePayShowError(errorElement);
+                            e.preventDefault();
+                        }
+                        if (totalCart > maxAmountWalletVnd) {
+                            let errorMessage = '';
+                            if (language === 'vi') {
+                                errorMessage = `Số tiền tối đa chấp nhận thanh toán là ${maxAmountWalletVnd.toLocaleString()} đ. Vui lòng chọn phương thức thanh toán khác.`;
+                            } else {
+                                errorMessage = `The maximum amount accepted for payment is ${maxAmountWalletVnd.toLocaleString()} VND. Please choose another payment method.`;
+                            }
+                            let errorElement = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                                    <ul class="woocommerce-error" role="alert">
+			                            <li>${errorMessage}</li>
+                                    </ul>
+                                </div>`;
+                            ninePayShowError(errorElement);
+                            e.preventDefault();
+                        }
+                    }
+
+                    if (paymentMethod === "ATM_CARD" && currency === "VND") {
+                        if (totalCart < minAmountAtmCardVnd) {
+                            let errorMessage = '';
+                            if (language === 'vi') {
+                                errorMessage = `Số tiền tối thiểu chấp nhận thanh toán là ${minAmountAtmCardVnd.toLocaleString()} đ. Vui lòng chọn phương thức thanh toán khác.`;
+                            } else {
+                                errorMessage = `The minimum amount accepted for payment is ${minAmountAtmCardVnd.toLocaleString()} VND. Please choose another payment method.`;
+                            }
+                            let errorElement = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                                    <ul class="woocommerce-error" role="alert">
+			                            <li>${errorMessage}</li>
+                                    </ul>
+                                </div>`;
+                            ninePayShowError(errorElement);
+                            e.preventDefault();
+                        }
+                        if (totalCart > maxAmountAtmCardVnd) {
+                            let errorMessage = '';
+                            if (language === 'vi') {
+                                errorMessage = `Số tiền tối đa chấp nhận thanh toán là ${maxAmountAtmCardVnd.toLocaleString()} đ. Vui lòng chọn phương thức thanh toán khác.`;
+                            } else {
+                                errorMessage = `The maximum amount accepted for payment is ${maxAmountAtmCardVnd.toLocaleString()} VND. Please choose another payment method.`;
+                            }
+                            let errorElement = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                                    <ul class="woocommerce-error" role="alert">
+			                            <li>${errorMessage}</li>
+                                    </ul>
+                                </div>`;
+                            ninePayShowError(errorElement);
+                            e.preventDefault();
+                        }
+                    }
+
+                    if (paymentMethod === "CREDIT_CARD" && currency === "VND") {
+                        if (totalCart < minAmountCreditCardVnd) {
+                            let errorMessage = '';
+                            if (language === 'vi') {
+                                errorMessage = `Số tiền tối thiểu chấp nhận thanh toán là ${minAmountCreditCardVnd.toLocaleString()} đ. Vui lòng chọn phương thức thanh toán khác.`;
+                            } else {
+                                errorMessage = `The minimum amount accepted for payment is ${minAmountCreditCardVnd.toLocaleString()} VND. Please choose another payment method.`;
+                            }
+                            let errorElement = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                                    <ul class="woocommerce-error" role="alert">
+			                            <li>${errorMessage}</li>
+                                    </ul>
+                                </div>`;
+                            ninePayShowError(errorElement);
+                            e.preventDefault();
+                        }
+                        if (totalCart > maxAmountCreditCardVnd) {
+                            let errorMessage = '';
+                            if (language === 'vi') {
+                                errorMessage = `Số tiền tối đa chấp nhận thanh toán là ${maxAmountCreditCardVnd.toLocaleString()} đ. Vui lòng chọn phương thức thanh toán khác.`;
+                            } else {
+                                errorMessage = `The maximum amount accepted for payment is ${maxAmountCreditCardVnd.toLocaleString()} VND. Please choose another payment method.`;
+                            }
+                            let errorElement = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                                    <ul class="woocommerce-error" role="alert">
+			                            <li>${errorMessage}</li>
+                                    </ul>
+                                </div>`;
+                            ninePayShowError(errorElement);
+                            e.preventDefault();
+                        }
+                    }
+
+                    if (paymentMethod === "COLLECTION" && currency === "VND") {
+                        if (totalCart < minAmountCollectionVnd) {
+                            let errorMessage = '';
+                            if (language === 'vi') {
+                                errorMessage = `Số tiền tối thiểu chuyển khoản là ${minAmountCollectionVnd.toLocaleString()} đ. Vui lòng chọn phương thức thanh toán khác.`;
+                            } else {
+                                errorMessage = `The minimum amount to transfer is ${minAmountCollectionVnd.toLocaleString()} VND. Please choose another payment method.`;
+                            }
+                            let error = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                                    <ul class="woocommerce-error" role="alert">
+			                            <li>${errorMessage}</li>
+                                    </ul>
+                                </div>`;
+                            ninePayShowError(error);
+                            e.preventDefault();
+                        }
+                        if (totalCart > maxAmountCollectionVnd) {
+                            let errorMessage = '';
+                            if (language === 'vi') {
+                                errorMessage = `Số tiền tối thiểu chuyển khoản là ${maxAmountCollectionVnd.toLocaleString()} đ. Vui lòng chọn phương thức thanh toán khác.`;
+                            } else {
+                                errorMessage = `The maximum amount to transfer is ${maxAmountCollectionVnd.toLocaleString()} VND. Please choose another payment method.`;
+                            }
+                            let errorElement = `<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">
+                                    <ul class="woocommerce-error" role="alert">
+			                            <li>${errorMessage}</li>
+                                    </ul>
+                                </div>`;
+                            ninePayShowError(errorElement);
                             e.preventDefault();
                         }
                     }
                 });
             });
+
+            function ninePayShowError(errorElement) {
+                jQuery('form.woocommerce-checkout').prepend(errorElement);
+                jQuery(jQuery('form.woocommerce-checkout .woocommerce-NoticeGroup')[0]).focus();
+                jQuery('html, body').animate({ scrollTop: jQuery(jQuery('form.woocommerce-checkout .woocommerce-NoticeGroup')[0]).offset().top - 200 }, 'slow');
+            }
         </script type="text/javascript">
         <?php
     }

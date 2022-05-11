@@ -100,7 +100,7 @@ class NinePayGateway extends NinePay {
                 'title' => __( 'Nút checkout', 'woocommerce' ),
                 'type' => 'text',
                 'description' => __( 'Text hiển thị nút check out', 'woocommerce' ),
-                'default' => 'Thanh toán',
+                'default' => 'Đặt hàng',
                 'placeholder' => '',
                 'desc_tip' => true,
             ),
@@ -267,7 +267,7 @@ class NinePayGateway extends NinePay {
         if (is_null($_GET['result'])) {
             return;
         }
-        $result = $_GET['result'];
+        $result = sanitize_text_field($_GET['result']);
 
         $hashChecksum = strtoupper(hash('sha256', $result . $secretKeyCheckSum));
 
